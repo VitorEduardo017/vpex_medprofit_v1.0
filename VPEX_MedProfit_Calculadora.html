@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VPEX | MedProfit — Calculadora de Retorno Clínico</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --neon: #CCFF00;
+    --neon-dim: rgba(204, 255, 0, 0.12);
+    --neon-glow: rgba(204, 255, 0, 0.4);
+    --bg: #070707;
+    --surface: rgba(255,255,255,0.025);
+    --surface-hover: rgba(255,255,255,0.05);
+    --border: rgba(255,255,255,0.07);
+    --text: #E0E0E0;
+    --text-dim: #777;
+    --white: #FFFFFF;
+    --red: #FF4444;
+    --green: #44FF88;
+    --blue: #4A90D9;
+    --orange: #FF8C00;
+    --glass: rgba(255,255,255,0.03);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Space Grotesk', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .grain {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0;
+  }
+
+  .container {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 40px 24px 60px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* HEADER */
+  .header {
+    text-align: center;
+    margin-bottom: 48px;
+    position: relative;
+  }
+
+  .header .logo-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .header .logo-icon {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    background: var(--neon);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 800;
+    font-size: 16px;
+    color: var(--bg);
+    box-shadow: 0 0 20px var(--neon-dim);
+  }
+
+  .header .logo-text {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--neon);
+    font-weight: 600;
+  }
+
+  .header h1 {
+    font-size: clamp(28px, 5vw, 42px);
+    font-weight: 700;
+    color: var(--white);
+    line-height: 1.15;
+    margin-bottom: 10px;
+    letter-spacing: -0.5px;
+  }
+
+  .header h1 span {
+    background: linear-gradient(135deg, var(--neon), #88FF00);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .header .subtitle {
+    color: var(--text-dim);
+    font-size: 15px;
+    max-width: 480px;
+    margin: 0 auto;
+    line-height: 1.5;
+  }
+
+  /* CARDS */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    margin-bottom: 20px;
+    backdrop-filter: blur(20px);
+    transition: border-color 0.3s;
+  }
+
+  .card:hover { border-color: rgba(255,255,255,0.12); }
+
+  .card-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--white);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .card-title .dot {
+    width: 7px; height: 7px;
+    background: var(--neon);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--neon-glow);
+    flex-shrink: 0;
+  }
+
+  .card-subtitle {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 24px;
+    padding-left: 17px;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.5px;
+  }
+
+  /* CLIENT NAME */
+  .client-name-group {
+    margin-bottom: 24px;
+    position: relative;
+  }
+
+  .client-name-group label {
+    display: block;
+    font-size: 13px;
+    color: var(--white);
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+
+  .client-name-group input {
+    width: 100%;
+    background: rgba(204,255,0,0.04);
+    border: 1px solid rgba(204,255,0,0.15);
+    border-radius: 10px;
+    padding: 14px 16px;
+    color: var(--neon);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    outline: none;
+    transition: all 0.3s;
+    letter-spacing: 0.5px;
+  }
+
+  .client-name-group input::placeholder {
+    color: rgba(204,255,0,0.25);
+    font-weight: 400;
+  }
+
+  .client-name-group input:focus {
+    border-color: var(--neon);
+    box-shadow: 0 0 0 3px var(--neon-dim);
+  }
+
+  /* INPUTS */
+  .input-group {
+    margin-bottom: 18px;
+  }
+
+  .input-group label {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 13px;
+    color: var(--white);
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+
+  .input-group label .hint {
+    font-size: 11px;
+    color: var(--text-dim);
+    font-weight: 400;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .input-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  @media (max-width: 600px) {
+    .input-row { grid-template-columns: 1fr; }
+  }
+
+  input[type="number"] {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    color: var(--white);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px;
+    font-weight: 600;
+    outline: none;
+    transition: all 0.3s;
+  }
+
+  input[type="number"]:focus {
+    border-color: var(--neon);
+    box-shadow: 0 0 0 3px var(--neon-dim);
+  }
+
+  input[type="number"]::-webkit-inner-spin-button { opacity: 0.3; }
+
+  /* RANGE */
+  .range-wrap {
+    position: relative;
+    margin-top: 4px;
+  }
+
+  .range-value-badge {
+    position: absolute;
+    right: 0;
+    top: -4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 15px;
+    color: var(--neon);
+    font-weight: 700;
+  }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 5px;
+    border-radius: 3px;
+    background: rgba(255,255,255,0.08);
+    cursor: pointer;
+    margin-top: 12px;
+    outline: none;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--neon);
+    box-shadow: 0 0 14px var(--neon-glow);
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+
+  input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.15);
+  }
+
+  /* RESULTS */
+  .results-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+
+  @media (max-width: 700px) {
+    .results-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  .metric {
+    background: var(--glass);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 16px;
+    text-align: center;
+    transition: all 0.3s;
+  }
+
+  .metric:hover {
+    border-color: rgba(204,255,0,0.15);
+    transform: translateY(-2px);
+  }
+
+  .metric .label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .metric .value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: clamp(18px, 2.5vw, 26px);
+    font-weight: 700;
+    color: var(--neon);
+    line-height: 1.2;
+  }
+
+  .metric .value.positive { color: var(--green); }
+  .metric .value.negative { color: var(--red); }
+  .metric .value.neutral { color: var(--orange); }
+
+  .metric .sub {
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-top: 4px;
+  }
+
+  /* PAYBACK */
+  .payback-wrap { margin: 20px 0; }
+
+  .payback-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .payback-header .title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--white);
+  }
+
+  .payback-header .badge-pb {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--bg);
+    background: var(--neon);
+    padding: 4px 12px;
+    border-radius: 20px;
+  }
+
+  .payback-track {
+    background: rgba(255,255,255,0.04);
+    border-radius: 6px;
+    height: 32px;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  .payback-fill {
+    height: 100%;
+    border-radius: 6px;
+    background: linear-gradient(90deg, rgba(204,255,0,0.08), rgba(204,255,0,0.3));
+    transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+    position: relative;
+  }
+
+  .payback-fill::after {
+    content: '';
+    position: absolute;
+    right: 0; top: 0; bottom: 0;
+    width: 2px;
+    background: var(--neon);
+    box-shadow: 0 0 8px var(--neon-glow);
+  }
+
+  .payback-months {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-top: 6px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* TIMELINE */
+  .timeline-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .timeline-table th {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+    text-align: left;
+    padding: 8px 6px;
+    border-bottom: 1px solid var(--border);
+    font-weight: 500;
+  }
+
+  .timeline-table th:nth-child(3),
+  .timeline-table th:nth-child(4),
+  .timeline-table th:nth-child(5) { text-align: right; }
+
+  .timeline-table td {
+    padding: 10px 6px;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    font-size: 12px;
+  }
+
+  .timeline-table td:first-child {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    color: var(--neon);
+    font-size: 11px;
+    width: 55px;
+  }
+
+  .timeline-table td:nth-child(2) { width: auto; }
+
+  .timeline-table td:nth-child(3),
+  .timeline-table td:nth-child(4),
+  .timeline-table td:nth-child(5) {
+    text-align: right;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    width: 110px;
+  }
+
+  .mini-bar-bg {
+    height: 5px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .mini-bar-fg {
+    height: 100%;
+    border-radius: 3px;
+    background: var(--neon);
+    opacity: 0.5;
+    transition: width 0.5s;
+  }
+
+  .green { color: var(--green) !important; }
+  .red { color: var(--red) !important; }
+  .neon { color: var(--neon) !important; }
+
+  .timeline-table tr.payback-row td {
+    border-bottom: 2px solid rgba(204,255,0,0.3);
+  }
+
+  /* RESUMO / PROPOSTA AUTO */
+  .resumo-card {
+    background: linear-gradient(135deg, rgba(204,255,0,0.04), rgba(204,255,0,0.01));
+    border: 1px solid rgba(204,255,0,0.12);
+    border-radius: 16px;
+    padding: 32px;
+    margin-top: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .resumo-card::before {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: radial-gradient(circle at 30% 30%, rgba(204,255,0,0.03), transparent 60%);
+    pointer-events: none;
+  }
+
+  .resumo-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .resumo-header .icon {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    background: var(--neon-dim);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+
+  .resumo-header h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--white);
+  }
+
+  .resumo-content {
+    position: relative;
+    z-index: 1;
+  }
+
+  .resumo-content p {
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.75;
+    margin-bottom: 12px;
+  }
+
+  .resumo-content .hl {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--neon);
+    font-weight: 600;
+    font-size: 13px;
+  }
+
+  .resumo-content .divider {
+    width: 40px;
+    height: 2px;
+    background: var(--neon);
+    opacity: 0.3;
+    margin: 16px 0;
+    border-radius: 1px;
+  }
+
+  .resumo-kpis {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    margin: 20px 0 16px;
+  }
+
+  .resumo-kpi {
+    text-align: center;
+    padding: 14px 8px;
+    background: rgba(0,0,0,0.3);
+    border-radius: 10px;
+    border: 1px solid rgba(204,255,0,0.08);
+  }
+
+  .resumo-kpi .num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--neon);
+    line-height: 1.2;
+  }
+
+  .resumo-kpi .desc {
+    font-size: 10px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 4px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .resumo-cta {
+    font-size: 13px;
+    color: var(--text-dim);
+    font-style: italic;
+    margin-top: 8px;
+  }
+
+  /* COPY BTN */
+  .copy-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--neon-dim);
+    border: 1px solid rgba(204,255,0,0.2);
+    color: var(--neon);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 16px;
+    letter-spacing: 0.5px;
+  }
+
+  .copy-btn:hover {
+    background: rgba(204,255,0,0.2);
+    border-color: var(--neon);
+  }
+
+  .copy-btn.copied {
+    background: rgba(68,255,136,0.15);
+    border-color: var(--green);
+    color: var(--green);
+  }
+
+  /* FOOTER */
+  .footer {
+    text-align: center;
+    margin-top: 48px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+  }
+
+  .footer .vpex-mark {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--neon);
+    opacity: 0.4;
+    text-transform: uppercase;
+  }
+
+  .footer .disclaimer {
+    font-size: 10px;
+    color: var(--text-dim);
+    opacity: 0.4;
+    margin-top: 8px;
+    line-height: 1.5;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  @media (max-width: 600px) {
+    .container { padding: 24px 16px 48px; }
+    .card { padding: 22px 18px; }
+    .resumo-card { padding: 22px 18px; }
+    .results-grid { grid-template-columns: 1fr 1fr; }
+    .resumo-kpis { grid-template-columns: 1fr 1fr; }
+    .timeline-table td:nth-child(4) { display: none; }
+    .timeline-table th:nth-child(4) { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="grain"></div>
+<div class="container">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="logo-row">
+      <div class="logo-icon">V</div>
+      <span class="logo-text">VPEX Solutions</span>
+    </div>
+    <h1><span>MedProfit</span></h1>
+    <p class="subtitle">Calculadora de retorno para clínicas, consultórios e institutos médicos</p>
+  </div>
+
+  <!-- DADOS DA CLÍNICA -->
+  <div class="card">
+    <div class="card-title"><span class="dot"></span>Dados da Clínica</div>
+    <div class="card-subtitle">informações do cliente para simulação personalizada</div>
+
+    <div class="client-name-group">
+      <label>Nome da Clínica / Instituto</label>
+      <input type="text" id="nomeClinica" placeholder="Ex: Life Medical Institute" oninput="calc()" spellcheck="false">
+    </div>
+
+    <div class="input-row">
+      <div class="input-group">
+        <label>Ticket Médio por Consulta <span class="hint">R$ cobrado</span></label>
+        <input type="number" id="ticket" value="350" min="50" max="10000" step="50" oninput="calc()">
+      </div>
+      <div class="input-group">
+        <label>Capacidade Novos Pac./Mês <span class="hint">vagas na agenda</span></label>
+        <input type="number" id="capacidade" value="40" min="5" max="300" step="5" oninput="calc()">
+      </div>
+    </div>
+    <div class="input-row">
+      <div class="input-group">
+        <label>Retorno do Paciente <span class="hint">vezes/ano</span></label>
+        <input type="number" id="retorno" value="3" min="1" max="12" step="1" oninput="calc()">
+      </div>
+      <div class="input-group">
+        <label>Novos Pac. Atuais (indicação) <span class="hint">por mês, sem digital</span></label>
+        <input type="number" id="atuais" value="15" min="0" max="200" step="1" oninput="calc()">
+      </div>
+    </div>
+  </div>
+
+  <!-- INVESTIMENTO -->
+  <div class="card">
+    <div class="card-title"><span class="dot"></span>Investimento Digital</div>
+    <div class="card-subtitle">valores do plano selecionado + mídia + produção</div>
+
+    <div class="input-row">
+      <div class="input-group">
+        <label>Setup Inicial <span class="hint">R$ implantação</span></label>
+        <input type="number" id="setup" value="15300" min="0" max="50000" step="100" oninput="calc()">
+      </div>
+      <div class="input-group">
+        <label>Mensalidade <span class="hint">R$ recorrente</span></label>
+        <input type="number" id="mensal" value="6700" min="0" max="20000" step="100" oninput="calc()">
+      </div>
+    </div>
+    <div class="input-row">
+      <div class="input-group">
+        <label>Verba de Mídia/Mês <span class="hint">R$ Google + Meta</span></label>
+        <input type="number" id="midia" value="2500" min="0" max="20000" step="100" oninput="calc()">
+      </div>
+      <div class="input-group">
+        <label>Custos Extras (único) <span class="hint">R$ foto, vídeo, etc</span></label>
+        <input type="number" id="extras" value="4500" min="0" max="20000" step="500" oninput="calc()">
+      </div>
+    </div>
+
+    <div class="input-group" style="margin-top:8px;">
+      <label>
+        Taxa de Conversão
+        <span class="hint">% leads → pacientes</span>
+      </label>
+      <div class="range-wrap">
+        <span class="range-value-badge" id="convDisplay">8%</span>
+        <input type="range" id="conversao" min="2" max="25" value="8" step="1" oninput="calc()">
+      </div>
+    </div>
+
+    <div class="input-group" style="margin-top:12px;">
+      <label>
+        CPL Médio Estimado
+        <span class="hint">custo por lead R$</span>
+      </label>
+      <div class="range-wrap">
+        <span class="range-value-badge" id="cplDisplay">R$ 25</span>
+        <input type="range" id="cpl" min="10" max="60" value="25" step="1" oninput="calc()">
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULTADOS -->
+  <div class="card" id="resultados">
+    <div class="card-title"><span class="dot"></span>Projeção de Retorno — 12 Meses</div>
+    <div class="card-subtitle">estimativa baseada nos dados inseridos</div>
+
+    <div class="results-grid">
+      <div class="metric">
+        <div class="label">Leads / Mês</div>
+        <div class="value" id="rLeads">—</div>
+        <div class="sub">gerados pela mídia</div>
+      </div>
+      <div class="metric">
+        <div class="label">Novos Pac. / Mês</div>
+        <div class="value" id="rPacientes">—</div>
+        <div class="sub">convertidos</div>
+      </div>
+      <div class="metric">
+        <div class="label">Receita Mensal</div>
+        <div class="value" id="rReceita">—</div>
+        <div class="sub">gerada pelo digital</div>
+      </div>
+      <div class="metric">
+        <div class="label">Receita 12 Meses</div>
+        <div class="value" id="rReceita12">—</div>
+        <div class="sub">com retornos (LTV)</div>
+      </div>
+      <div class="metric">
+        <div class="label">Investimento 12m</div>
+        <div class="value neutral" id="rInvest">—</div>
+        <div class="sub">setup + mensal + mídia</div>
+      </div>
+      <div class="metric">
+        <div class="label">ROI</div>
+        <div class="value" id="rROI">—</div>
+        <div class="sub">retorno / investido</div>
+      </div>
+    </div>
+
+    <!-- Payback -->
+    <div class="payback-wrap">
+      <div class="payback-header">
+        <span class="title">Payback</span>
+        <span class="badge-pb" id="paybackBadge">—</span>
+      </div>
+      <div class="payback-track">
+        <div class="payback-fill" id="paybackFill"></div>
+      </div>
+      <div class="payback-months">
+        <span>M1</span><span>M2</span><span>M3</span><span>M4</span><span>M5</span><span>M6</span>
+        <span>M7</span><span>M8</span><span>M9</span><span>M10</span><span>M11</span><span>M12</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- TIMELINE -->
+  <div class="card">
+    <div class="card-title"><span class="dot"></span>Evolução Mês a Mês</div>
+    <div class="card-subtitle">ramp-up: mês 1 a 40%, mês 2 a 70%, mês 3+ a 100%</div>
+    <table class="timeline-table">
+      <thead>
+        <tr>
+          <th>Mês</th>
+          <th></th>
+          <th>Receita</th>
+          <th>Custo</th>
+          <th>Saldo Acum.</th>
+        </tr>
+      </thead>
+      <tbody id="timelineBody"></tbody>
+    </table>
+  </div>
+
+  <!-- RESUMO PERSONALIZADO -->
+  <div class="resumo-card" id="resumoCard">
+    <div class="resumo-header">
+      <div class="icon">📊</div>
+      <h3>Resumo Executivo</h3>
+    </div>
+    <div class="resumo-content" id="resumoContent"></div>
+    <button class="copy-btn" id="copyBtn" onclick="copyResumo()">
+      📋 Copiar resumo como texto
+    </button>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <div class="vpex-mark">VPEX Solutions — MedProfit v1.0</div>
+    <div class="disclaimer">
+      Estimativas baseadas em benchmarks de tráfego pago para saúde/estética no Brasil.
+      CPL médio R$ 15-35 para Google Ads saúde. Resultados reais variam conforme mercado, execução e sazonalidade.
+    </div>
+  </div>
+
+</div>
+
+<script>
+function fmt(n) {
+  return 'R$ ' + Math.round(n).toLocaleString('pt-BR');
+}
+
+function calc() {
+  const nome = document.getElementById('nomeClinica').value.trim() || 'a clínica';
+  const ticket = +document.getElementById('ticket').value || 0;
+  const capacidade = +document.getElementById('capacidade').value || 0;
+  const retorno = +document.getElementById('retorno').value || 1;
+  const atuais = +document.getElementById('atuais').value || 0;
+  const setup = +document.getElementById('setup').value || 0;
+  const mensal = +document.getElementById('mensal').value || 0;
+  const midia = +document.getElementById('midia').value || 0;
+  const extras = +document.getElementById('extras').value || 0;
+  const conv = +document.getElementById('conversao').value || 5;
+  const cpl = +document.getElementById('cpl').value || 25;
+
+  document.getElementById('convDisplay').textContent = conv + '%';
+  document.getElementById('cplDisplay').textContent = 'R$ ' + cpl;
+
+  const vagasDisponiveis = Math.max(capacidade - atuais, 0);
+  const leadsPerMonth = midia > 0 ? Math.floor(midia / cpl) : 0;
+  const pacConvertidos = Math.floor(leadsPerMonth * (conv / 100));
+  const pacDigital = Math.min(pacConvertidos, vagasDisponiveis);
+  const receitaMensal = pacDigital * ticket;
+  const ltvPaciente = ticket * retorno;
+
+  const investTotal = setup + extras + (mensal * 12) + (midia * 12);
+
+  // Display metrics
+  document.getElementById('rLeads').textContent = leadsPerMonth;
+  document.getElementById('rPacientes').textContent = pacDigital;
+  document.getElementById('rReceita').textContent = fmt(receitaMensal);
+
+  // Timeline + acumulados
+  const ramp = [0.4, 0.7, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
+  let acumReceita = 0;
+  let acumCusto = setup + extras;
+  let paybackMonth = null;
+  let maxRec = 0;
+  const meses = [];
+
+  for (let m = 1; m <= 12; m++) {
+    const rf = ramp[m - 1];
+    const pacMes = Math.floor(pacDigital * rf);
+    // receita com LTV progressivo
+    const ltvFactor = Math.min(retorno, 1 + (m - 1) * (retorno - 1) / 11);
+    const recMes = pacMes * ticket * ltvFactor;
+    const custoMes = mensal + midia;
+    acumReceita += recMes;
+    acumCusto += custoMes;
+    const saldo = acumReceita - acumCusto;
+    if (paybackMonth === null && saldo >= 0) paybackMonth = m;
+    if (recMes > maxRec) maxRec = recMes;
+    meses.push({ m, pacMes, recMes, custoMes, acumReceita, acumCusto, saldo });
+  }
+
+  document.getElementById('rReceita12').textContent = fmt(acumReceita);
+  document.getElementById('rInvest').textContent = fmt(investTotal);
+
+  const roi = investTotal > 0 ? ((acumReceita - investTotal) / investTotal * 100) : 0;
+  const roiEl = document.getElementById('rROI');
+  roiEl.textContent = roi.toFixed(0) + '%';
+  roiEl.className = 'value ' + (roi > 100 ? 'positive' : roi > 0 ? 'neutral' : 'negative');
+
+  // Payback
+  const pbBadge = document.getElementById('paybackBadge');
+  const pbFill = document.getElementById('paybackFill');
+  if (paybackMonth) {
+    pbBadge.textContent = `Mês ${paybackMonth}`;
+    pbFill.style.width = (paybackMonth / 12 * 100) + '%';
+    pbFill.style.background = 'linear-gradient(90deg, rgba(204,255,0,0.08), rgba(204,255,0,0.3))';
+  } else {
+    pbBadge.textContent = '> 12 meses';
+    pbFill.style.width = '100%';
+    pbFill.style.background = 'linear-gradient(90deg, rgba(255,68,68,0.08), rgba(255,68,68,0.2))';
+  }
+
+  // Timeline table
+  let html = '';
+  for (const mes of meses) {
+    const barW = maxRec > 0 ? (mes.recMes / maxRec * 100) : 0;
+    const isPB = mes.m === paybackMonth;
+    html += `<tr class="${isPB ? 'payback-row' : ''}">
+      <td>M${mes.m}</td>
+      <td><div class="mini-bar-bg"><div class="mini-bar-fg" style="width:${barW}%"></div></div></td>
+      <td class="green">${fmt(mes.recMes)}</td>
+      <td class="red">${fmt(mes.custoMes)}</td>
+      <td class="${mes.saldo >= 0 ? 'green' : 'red'}">${fmt(mes.saldo)}</td>
+    </tr>`;
+  }
+  document.getElementById('timelineBody').innerHTML = html;
+
+  // Resumo personalizado
+  const perdaMensal = vagasDisponiveis * ticket;
+  const perdaAnual = vagasDisponiveis * ltvPaciente * 12;
+  const multiplicador = investTotal > 0 ? (acumReceita / investTotal).toFixed(1) : '—';
+
+  const resumoHTML = `
+    <p>
+      Hoje, <strong style="color:var(--white)">${nome}</strong> opera com 
+      <span class="hl">${atuais} pacientes novos/mês</span> vindos por indicação, 
+      enquanto a agenda comporta <span class="hl">${capacidade}</span>. 
+      São <span class="hl">${vagasDisponiveis} vagas ociosas</span> que representam até 
+      <span class="hl">${fmt(perdaMensal)}/mês</span> em receita não capturada — 
+      ou <span class="hl">${fmt(perdaAnual)}/ano</span> considerando retorno dos pacientes.
+    </p>
+
+    <div class="divider"></div>
+
+    <p>
+      Com a estratégia digital proposta, a estimativa conservadora é gerar 
+      <span class="hl">${leadsPerMonth} leads/mês</span> e converter 
+      <span class="hl">${pacDigital} novos pacientes/mês</span>, adicionando 
+      <span class="hl">${fmt(receitaMensal)}</span> em receita mensal recorrente.
+    </p>
+
+    <div class="resumo-kpis">
+      <div class="resumo-kpi">
+        <div class="num">${fmt(acumReceita)}</div>
+        <div class="desc">Receita 12 meses</div>
+      </div>
+      <div class="resumo-kpi">
+        <div class="num">${fmt(investTotal)}</div>
+        <div class="desc">Investimento total</div>
+      </div>
+      <div class="resumo-kpi">
+        <div class="num">${multiplicador}x</div>
+        <div class="desc">Multiplicador</div>
+      </div>
+      <div class="resumo-kpi">
+        <div class="num">${paybackMonth ? 'Mês ' + paybackMonth : '> 12m'}</div>
+        <div class="desc">Payback</div>
+      </div>
+    </div>
+
+    <p>
+      Cada <span class="hl">R$ 1 investido retorna R$ ${multiplicador}</span> em 12 meses.
+      ${paybackMonth ? `O investimento se paga no <span class="hl">mês ${paybackMonth}</span>, e a partir daí é lucro acumulado.` : 'O retorno se consolida ao longo do período.'}
+    </p>
+
+    <div class="divider"></div>
+
+    <p class="resumo-cta">
+      A questão não é se vale investir em captação digital — é quanto ${nome} está deixando na mesa a cada mês sem essa estrutura rodando.
+    </p>
+  `;
+
+  document.getElementById('resumoContent').innerHTML = resumoHTML;
+}
+
+function copyResumo() {
+  const nome = document.getElementById('nomeClinica').value.trim() || 'a clínica';
+  const ticket = +document.getElementById('ticket').value || 0;
+  const capacidade = +document.getElementById('capacidade').value || 0;
+  const retorno = +document.getElementById('retorno').value || 1;
+  const atuais = +document.getElementById('atuais').value || 0;
+  const setup = +document.getElementById('setup').value || 0;
+  const mensal = +document.getElementById('mensal').value || 0;
+  const midia = +document.getElementById('midia').value || 0;
+  const extras = +document.getElementById('extras').value || 0;
+  const conv = +document.getElementById('conversao').value || 5;
+  const cpl = +document.getElementById('cpl').value || 25;
+
+  const vagasDisponiveis = Math.max(capacidade - atuais, 0);
+  const leadsPerMonth = midia > 0 ? Math.floor(midia / cpl) : 0;
+  const pacDigital = Math.min(Math.floor(leadsPerMonth * (conv / 100)), vagasDisponiveis);
+  const receitaMensal = pacDigital * ticket;
+  const ltvPaciente = ticket * retorno;
+  const investTotal = setup + extras + (mensal * 12) + (midia * 12);
+  const perdaMensal = vagasDisponiveis * ticket;
+  const perdaAnual = vagasDisponiveis * ltvPaciente * 12;
+
+  // Calcula receita 12m
+  const ramp = [0.4, 0.7, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
+  let acumReceita = 0, acumCusto = setup + extras, paybackMonth = null;
+  for (let m = 1; m <= 12; m++) {
+    const pacMes = Math.floor(pacDigital * ramp[m-1]);
+    const ltvF = Math.min(retorno, 1 + (m-1) * (retorno-1) / 11);
+    acumReceita += pacMes * ticket * ltvF;
+    acumCusto += mensal + midia;
+    if (paybackMonth === null && acumReceita - acumCusto >= 0) paybackMonth = m;
+  }
+  const mult = investTotal > 0 ? (acumReceita / investTotal).toFixed(1) : '—';
+
+  const texto = `RESUMO EXECUTIVO — ${nome.toUpperCase()}
+
+Situação atual: ${atuais} pacientes novos/mês (indicação), agenda para ${capacidade}. São ${vagasDisponiveis} vagas ociosas = ${fmt(perdaMensal)}/mês em receita não capturada (${fmt(perdaAnual)}/ano com retornos).
+
+Projeção com digital: ${leadsPerMonth} leads/mês → ${pacDigital} novos pacientes/mês → ${fmt(receitaMensal)} receita mensal adicional.
+
+• Receita estimada 12 meses: ${fmt(acumReceita)}
+• Investimento total 12 meses: ${fmt(investTotal)}
+• Multiplicador: ${mult}x
+• Payback: ${paybackMonth ? 'Mês ' + paybackMonth : '> 12 meses'}
+
+Cada R$ 1 investido retorna R$ ${mult}. ${paybackMonth ? `O investimento se paga no mês ${paybackMonth}.` : ''}
+
+— VPEX Solutions | MedProfit`;
+
+  navigator.clipboard.writeText(texto).then(() => {
+    const btn = document.getElementById('copyBtn');
+    btn.innerHTML = '✅ Copiado!';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.innerHTML = '📋 Copiar resumo como texto';
+      btn.classList.remove('copied');
+    }, 2500);
+  });
+}
+
+calc();
+</script>
+</body>
+</html>
